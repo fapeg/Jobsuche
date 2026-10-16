@@ -80,6 +80,8 @@ body {
 
 a { color: inherit; }
 
+[hidden] { display: none !important; }
+
 :focus-visible {
   outline: 3px solid var(--fokus);
   outline-offset: 2px;
@@ -310,6 +312,86 @@ a { color: inherit; }
 
 .chip__anzahl { opacity: 0.7; }
 
+/* ---------- Prüfstatus: Filter + Sync ---------- */
+.pruefung {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.status-filter {
+  display: inline-flex;
+  padding: 3px;
+  border: 1px solid var(--linie);
+  border-radius: 12px;
+  background: var(--flaeche);
+}
+
+.status-knopf {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 38px;
+  padding: 6px 12px;
+  border: 0;
+  border-radius: 9px;
+  background: transparent;
+  color: var(--text-leise);
+  font: inherit;
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.status-knopf[aria-pressed="true"] {
+  background: var(--flaeche-2);
+  color: var(--text);
+}
+
+.status-knopf__anzahl {
+  font-weight: 400;
+  opacity: 0.75;
+}
+
+.sync-knopf {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 38px;
+  padding: 6px 12px;
+  border: 1px solid var(--linie);
+  border-radius: 999px;
+  background: var(--flaeche);
+  color: var(--text);
+  font: inherit;
+  font-size: 0.875rem;
+  cursor: pointer;
+}
+
+.sync-knopf:hover { border-color: var(--text-leise); }
+
+.sync-punkt {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--sync-farbe, var(--text-leise));
+}
+
+[data-zustand="ok"] { --sync-farbe: var(--kat-energie); }
+[data-zustand="laedt"] { --sync-farbe: var(--kat-finanzen); }
+[data-zustand="lokal"] { --sync-farbe: var(--kat-plattform); }
+[data-zustand="fehler"] { --sync-farbe: #dc2626; }
+[data-zustand="aus"] { --sync-farbe: var(--text-leise); }
+
+@media (prefers-reduced-motion: no-preference) {
+  .sync-knopf[data-zustand="laedt"] .sync-punkt { animation: pulsieren 1s ease-in-out infinite alternate; }
+}
+
+@keyframes pulsieren { to { opacity: 0.25; } }
+
 .treffer {
   margin: 0 0 12px;
   color: var(--text-leise);
@@ -412,6 +494,158 @@ a { color: inherit; }
   margin: 0;
   color: var(--text-leise);
   font-size: 0.8125rem;
+}
+
+/* „Geprüft“-Knopf (Checkbox-Optik) */
+.pruef-knopf {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  min-height: 44px;
+  padding: 8px 12px;
+  border: 1px dashed var(--linie);
+  border-radius: 10px;
+  background: transparent;
+  color: var(--text-leise);
+  font: inherit;
+  font-size: 0.9375rem;
+  text-align: left;
+  cursor: pointer;
+}
+
+.pruef-knopf:hover { border-color: var(--text-leise); color: var(--text); }
+
+.pruef-knopf__kasten {
+  display: inline-grid;
+  flex: 0 0 auto;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  border: 2px solid var(--text-leise);
+  border-radius: 6px;
+}
+
+.pruef-knopf[aria-pressed="true"] {
+  border-style: solid;
+  border-color: var(--kat-energie);
+  background: color-mix(in srgb, var(--kat-energie) 12%, transparent);
+  color: var(--text);
+  font-weight: 600;
+}
+
+.pruef-knopf[aria-pressed="true"] .pruef-knopf__kasten {
+  border-color: var(--kat-energie);
+  background: var(--kat-energie);
+}
+
+.pruef-knopf[aria-pressed="true"] .pruef-knopf__kasten::after {
+  content: "";
+  width: 6px;
+  height: 11px;
+  margin-top: -2px;
+  border: solid var(--flaeche);
+  border-width: 0 2.5px 2.5px 0;
+  transform: rotate(45deg);
+}
+
+/* Geprüfte Karten: ausgegraut, Name durchgestrichen – der Prüf-Knopf bleibt voll sichtbar */
+.karte--geprueft {
+  border-top-color: var(--linie);
+  background: var(--flaeche-2);
+  box-shadow: none;
+}
+
+.karte--geprueft > :not(.pruef-knopf) { opacity: 0.5; }
+
+.karte--geprueft .karte__name {
+  text-decoration: line-through;
+  text-decoration-thickness: 2px;
+}
+
+.karte--geprueft .knopf--primaer {
+  border-color: var(--linie);
+  background: var(--flaeche);
+  color: var(--text);
+}
+
+/* ---------- Sync-Dialog ---------- */
+.dialog {
+  width: min(560px, calc(100% - 2 * var(--abstand)));
+  max-height: calc(100% - 2 * var(--abstand));
+  padding: 0;
+  border: 1px solid var(--linie);
+  border-radius: var(--radius);
+  background: var(--flaeche);
+  color: var(--text);
+}
+
+.dialog::backdrop { background: rgb(0 0 0 / 45%); }
+
+.dialog__inhalt {
+  padding: 20px;
+  font-size: 0.9375rem;
+}
+
+.dialog__inhalt p { margin: 0 0 12px; }
+
+.dialog__titel {
+  margin: 0 0 8px;
+  font-size: 1.25rem;
+}
+
+.dialog__status {
+  padding: 8px 10px 8px 28px;
+  border-radius: 8px;
+  background: var(--flaeche-2);
+  position: relative;
+}
+
+.dialog__status::before {
+  content: "";
+  position: absolute;
+  left: 10px;
+  top: 0.95em;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--sync-farbe, var(--text-leise));
+}
+
+.dialog__schritte {
+  margin: 0 0 12px;
+  padding-left: 20px;
+}
+
+.dialog__schritte li { margin-bottom: 4px; }
+
+.dialog__feld input {
+  width: 100%;
+  min-height: 44px;
+  margin-bottom: 8px;
+  padding: 10px 12px;
+  border: 1px solid var(--linie);
+  border-radius: 10px;
+  background: var(--hintergrund);
+  color: var(--text);
+  font: inherit;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+}
+
+.dialog__fehler {
+  color: #dc2626;
+  font-weight: 600;
+}
+
+.dialog__klein {
+  color: var(--text-leise);
+  font-size: 0.8125rem;
+}
+
+.dialog__aktionen {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
 }
 
 /* ---------- Knöpfe ---------- */

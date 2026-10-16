@@ -44,6 +44,14 @@
 
     <div class="kategorien" id="kategorien" role="group" aria-label="Nach Branche filtern"></div>
 
+    <div class="pruefung">
+      <div class="status-filter" id="status-filter" role="group" aria-label="Nach Prüfstatus filtern"></div>
+      <button type="button" class="sync-knopf" id="sync-knopf" aria-haspopup="dialog">
+        <span class="sync-punkt" aria-hidden="true"></span>
+        <span id="sync-text">Lade Prüfstatus …</span>
+      </button>
+    </div>
+
     <h2 class="sr-only">Startup-Liste</h2>
     <p class="treffer" id="treffer" aria-live="polite"></p>
     <ul class="karten" id="liste"></ul>
@@ -69,11 +77,46 @@
     </div>
   </footer>
 
+  <dialog class="dialog" id="sync-dialog" aria-labelledby="sync-dialog-titel">
+    <form method="dialog" class="dialog__inhalt" id="sync-formular">
+      <h2 class="dialog__titel" id="sync-dialog-titel">Prüfstatus auf allen Geräten</h2>
+      <p class="dialog__status" id="sync-dialog-status" role="status"></p>
+      <p>
+        Die Markierungen werden in der Datei <code id="sync-datei">data/geprueft.json</code> im GitHub-Repository
+        <a id="sync-repo-link" href="https://github.com/fapeg/Jobsuche" target="_blank" rel="noopener noreferrer">fapeg/Jobsuche</a>
+        gespeichert. Lesen klappt auf jedem Gerät; zum <strong>Speichern</strong> braucht jedes Gerät einmalig einen GitHub-Token.
+      </p>
+      <ol class="dialog__schritte">
+        <li><a href="https://github.com/settings/personal-access-tokens/new" target="_blank" rel="noopener noreferrer">Fine-grained Token erstellen</a> (Name z. B. „Jobsuche“, Ablaufdatum nach Wahl).</li>
+        <li><em>Repository access</em>: „Only select repositories“ → <span id="sync-repo-name">Jobsuche</span>.</li>
+        <li><em>Permissions → Repository permissions → Contents</em>: „Read and write“.</li>
+        <li>Token kopieren und hier einfügen:</li>
+      </ol>
+      <label class="dialog__feld">
+        <span class="sr-only">GitHub-Token</span>
+        <input type="password" id="token-eingabe" autocomplete="off" spellcheck="false" placeholder="github_pat_…">
+      </label>
+      <p class="dialog__fehler" id="token-fehler" role="alert" hidden></p>
+      <p class="dialog__klein">
+        Der Token bleibt nur in diesem Browser gespeichert. Da das Repository öffentlich ist, ist auch die Liste der
+        geprüften Firmen öffentlich einsehbar.
+      </p>
+      <div class="dialog__aktionen">
+        <button type="button" class="knopf knopf--primaer" id="token-speichern">Token speichern</button>
+        <button type="button" class="knopf" id="jetzt-sync">Jetzt synchronisieren</button>
+        <button type="button" class="knopf" id="token-entfernen">Token entfernen</button>
+        <button type="submit" class="knopf">Schließen</button>
+      </div>
+    </form>
+  </dialog>
+
   <!-- Daten: Kategorien zuerst, danach eine Datei pro Stadt (Reihenfolge = Reihenfolge der Tabs). -->
+  <script src="data/einstellungen.js"></script>
   <script src="data/kategorien.js"></script>
   <script src="data/staedte/essen.js"></script>
   <script src="data/staedte/duesseldorf.js"></script>
   <script src="data/staedte/koeln.js"></script>
+  <script src="assets/pruefstatus.js"></script>
   <script src="assets/app.js"></script>
 </body>
 </html>

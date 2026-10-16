@@ -9,6 +9,12 @@
   var ALLE = 'alle';
   var STAEDTE = window.STARTUP_STAEDTE || [];
   var KATEGORIEN = window.STARTUP_KATEGORIEN || {};
+  var PRUEF = window.Pruefstatus || null; // assets/pruefstatus.js
+  var STATUS = [
+    { id: ALLE, name: 'Alle' },
+    { id: 'offen', name: 'Offen' },
+    { id: 'geprueft', name: 'Geprüft' },
+  ];
 
   var el = {
     intro: document.getElementById('kopf-intro'),
@@ -22,9 +28,19 @@
     leer: document.getElementById('leer'),
     zuruecksetzen: document.getElementById('zuruecksetzen'),
     quellen: document.getElementById('quellen'),
+    statusFilter: document.getElementById('status-filter'),
+    syncKnopf: document.getElementById('sync-knopf'),
+    syncText: document.getElementById('sync-text'),
+    dialog: document.getElementById('sync-dialog'),
+    dialogStatus: document.getElementById('sync-dialog-status'),
+    tokenEingabe: document.getElementById('token-eingabe'),
+    tokenFehler: document.getElementById('token-fehler'),
+    tokenSpeichern: document.getElementById('token-speichern'),
+    tokenEntfernen: document.getElementById('token-entfernen'),
+    jetztSync: document.getElementById('jetzt-sync'),
   };
 
-  var zustand = { stadt: ALLE, branche: ALLE, suche: '', sortierung: 'relevanz' };
+  var zustand = { stadt: ALLE, branche: ALLE, status: ALLE, suche: '', sortierung: 'relevanz' };
 
   // Alle Startups als flache Liste, jeweils mit Verweis auf ihre Stadt und ihre Position in der Datei.
   var eintraege = [];
@@ -34,6 +50,7 @@
         startup: startup,
         stadt: stadt,
         rang: index,
+        schluessel: pruefSchluessel(stadt, startup),
         suchtext: normalisiere([
           startup.name,
           startup.branche,
@@ -55,6 +72,30 @@
       .normalize('NFD')
       .replace(/[̀-ͯ]/g, '')
       .replace(/ß/g, 'ss');
+  }
+
+  /**
+   * Fester Schlüssel für den Prüfstatus, z. B. "koeln/deepl" oder "essen/oekoloco".
+   * Ein optionales Feld `id` im Startup-Eintrag hat Vorrang (nützlich, wenn sich der Name ändert).
+   * Muss zu scripts/pruefe-daten.mjs passen.
+   */
+  function pruefSchluessel(stadt, startup) {
+    var kurz = startup.id || String(startup.name)
+      .toLowerCase()
+      .replace(/ä/g, 'ae').replace(/ö/g, 'oe').replace(/ü/g, 'ue').replace(/ß/g, 'ss')
+      .normalize('NFD').replace(/[̀-ͯ]/g, '')
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/^-+|-+$/g, '');
+    return stadt.id + '/' + kurz;
+  }
+
+  function pruefDatum(eintrag) {
+    return PRUEF ? PRUEF.datum(eintrag.schluessel) : null;
+  }
+
+  function alsDeutschesDatum(iso) {
+    var teile = String(iso).split('-');
+    return teile.length === 3 ? teile[2] + '.' + teile[1] + '.' + teile[0] : iso;
   }
 
   function kategorieName(schluessel) {
@@ -101,10 +142,12 @@
     var parameter = new URLSearchParams(window.location.hash.slice(1));
     var stadt = parameter.get('stadt');
     var branche = parameter.get('branche');
+    var status = parameter.get('status');
     var sortierung = parameter.get('sortierung');
 
     zustand.stadt = stadt && stadtById(stadt) ? stadt : ALLE;
     zustand.branche = branche && KATEGORIEN[branche] ? branche : ALLE;
+    zustand.status = STATUS.some(function (s) { return s.id === status; }) ? status : ALLE;
     zustand.suche = parameter.get('suche') || '';
     zustand.sortierung = sortierung && el.sortierung.querySelector('option[value="' + sortierung + '"]') ? sortierung : 'relevanz';
 
@@ -116,6 +159,7 @@
     var parameter = new URLSearchParams();
     if (zustand.stadt !== ALLE) parameter.set('stadt', zustand.stadt);
     if (zustand.branche !== ALLE) parameter.set('branche', zustand.branche);
+    if (zustand.status !== ALLE) parameter.set('status', zustand.status);
     if (zustand.suche) parameter.set('suche', zustand.suche);
     if (zustand.sortierung !== 'relevanz') parameter.set('sortierung', zustand.sortierung);
 
@@ -137,6 +181,7 @@
     optionen.forEach(function (option) {
       var knopf = erzeuge('button', 'stadt-knopf');
       knopf.type = 'button';
+      knopf.dataset.fokus = 'stadt:' + option.id;
       knopf.setAttribute('aria-pressed', String(zustand.stadt === option.id));
       knopf.append(option.name);
       knopf.appendChild(erzeuge('span', 'stadt-knopf__anzahl', String(option.anzahl)));
@@ -183,6 +228,7 @@
     optionen.forEach(function (option) {
       var chip = erzeuge('button', 'chip');
       chip.type = 'button';
+      chip.dataset.fokus = 'branche:' + option.id;
       chip.setAttribute('aria-pressed', String(zustand.branche === option.id));
       if (option.id !== ALLE) {
         chip.dataset.kategorie = option.id;
@@ -209,9 +255,61 @@
     }
   }
 
+  function zeichneStatusFilter(basis) {
+    var anzahlGeprueft = basis.filter(function (eintrag) { return pruefDatum(eintrag); }).length;
+    var anzahlen = { alle: basis.length, offen: basis.length - anzahlGeprueft, geprueft: anzahlGeprueft };
+
+    el.statusFilter.replaceChildren();
+    STATUS.forEach(function (option) {
+      var knopf = erzeuge('button', 'status-knopf');
+      knopf.type = 'button';
+      knopf.dataset.fokus = 'status:' + option.id;
+      knopf.setAttribute('aria-pressed', String(zustand.status === option.id));
+      knopf.append(option.name + ' ');
+      knopf.appendChild(erzeuge('span', 'status-knopf__anzahl', String(anzahlen[option.id])));
+      knopf.addEventListener('click', function () {
+        zustand.status = option.id;
+        aktualisiere();
+      });
+      el.statusFilter.appendChild(knopf);
+    });
+  }
+
+  function syncBeschreibung() {
+    if (!PRUEF) return { klasse: 'lokal', text: 'Nur auf diesem Gerät', lang: '' };
+    var z = PRUEF.zustand();
+    var vorgemerkt = z.ausstehend === 1 ? '1 Änderung' : z.ausstehend + ' Änderungen';
+    var ist = z.ausstehend === 1 ? ' ist' : ' sind';
+    if (!z.konfiguriert) return { klasse: 'lokal', text: 'Nur auf diesem Gerät', lang: 'Kein Speicherort konfiguriert (data/einstellungen.js).' };
+    if (z.modus === 'laedt') return { klasse: 'laedt', text: 'Lade Prüfstatus …', lang: 'Der Prüfstatus wird von GitHub geladen.' };
+    if (z.modus === 'speichert') return { klasse: 'laedt', text: 'Speichere …', lang: 'Änderungen werden in GitHub gespeichert.' };
+    if (z.modus === 'fehler') {
+      return { klasse: 'fehler', text: 'Sync-Fehler', lang: z.meldung + (z.ausstehend ? ' ' + vorgemerkt + ist + ' lokal vorgemerkt.' : '') };
+    }
+    if (!z.hatToken) {
+      return z.ausstehend
+        ? { klasse: 'lokal', text: vorgemerkt + ' nur lokal · Sync einrichten', lang: vorgemerkt + ist + ' nur auf diesem Gerät gespeichert. Mit einem Token wird alles ins Repository übertragen.' }
+        : { klasse: 'aus', text: 'Sync einrichten', lang: 'Der Prüfstatus wird von GitHub gelesen. Zum Speichern auf diesem Gerät einen Token hinterlegen.' };
+    }
+    return { klasse: 'ok', text: 'Synchronisiert', lang: 'Alle Markierungen sind in GitHub gespeichert und auf allen Geräten sichtbar.' };
+  }
+
+  function zeichneSync() {
+    var info = syncBeschreibung();
+    el.syncKnopf.dataset.zustand = info.klasse;
+    el.syncText.textContent = info.text;
+    el.syncKnopf.title = info.lang;
+    el.dialogStatus.textContent = info.lang;
+    el.dialogStatus.dataset.zustand = info.klasse;
+    var z = PRUEF ? PRUEF.zustand() : { hatToken: false, konfiguriert: false };
+    el.tokenEntfernen.hidden = !z.hatToken;
+    el.jetztSync.hidden = !z.konfiguriert;
+  }
+
   function zeichneKarte(eintrag, mitStadt) {
     var s = eintrag.startup;
-    var karte = erzeuge('li', 'karte');
+    var datum = pruefDatum(eintrag);
+    var karte = erzeuge('li', datum ? 'karte karte--geprueft' : 'karte');
     karte.dataset.kategorie = s.kategorie;
 
     var kopf = erzeuge('div', 'karte__kopf');
@@ -241,6 +339,20 @@
     karte.appendChild(aktionen);
 
     if (s.karriereHinweis) karte.appendChild(erzeuge('p', 'karte__karriere-hinweis', s.karriereHinweis));
+
+    // Markierung „Karriereseite geprüft“
+    var pruefKnopf = erzeuge('button', 'pruef-knopf');
+    pruefKnopf.type = 'button';
+    pruefKnopf.dataset.fokus = 'pruef:' + eintrag.schluessel;
+    pruefKnopf.setAttribute('aria-pressed', String(!!datum));
+    pruefKnopf.setAttribute('aria-label', s.name + ': als geprüft markieren');
+    pruefKnopf.appendChild(erzeuge('span', 'pruef-knopf__kasten')).setAttribute('aria-hidden', 'true');
+    pruefKnopf.appendChild(erzeuge('span', null, datum ? 'Geprüft am ' + alsDeutschesDatum(datum) : 'Als geprüft markieren'));
+    pruefKnopf.disabled = !PRUEF;
+    pruefKnopf.addEventListener('click', function () {
+      PRUEF.setze(eintrag.schluessel, !datum, s.name + ' (' + eintrag.stadt.name + ')');
+    });
+    karte.appendChild(pruefKnopf);
 
     return karte;
   }
@@ -296,13 +408,22 @@
         return eintrag.suchtext.indexOf(begriff) !== -1;
       });
     });
-    var sichtbar = sortiere(passendZurSuche.filter(function (eintrag) {
+    var inBranche = passendZurSuche.filter(function (eintrag) {
       return zustand.branche === ALLE || eintrag.startup.kategorie === zustand.branche;
+    });
+    var sichtbar = sortiere(inBranche.filter(function (eintrag) {
+      if (zustand.status === ALLE) return true;
+      return zustand.status === 'geprueft' ? !!pruefDatum(eintrag) : !pruefDatum(eintrag);
     }));
+
+    // Neu gezeichnete Knöpfe verlieren den Fokus – merken und danach wiederherstellen.
+    var fokus = document.activeElement && document.activeElement.dataset ? document.activeElement.dataset.fokus : null;
 
     zeichneStaedte();
     zeichneStadtInfo(stadt);
     zeichneKategorien(passendZurSuche);
+    zeichneStatusFilter(inBranche);
+    zeichneSync();
     zeichneQuellen(stadt);
 
     el.liste.replaceChildren();
@@ -312,13 +433,66 @@
     });
     el.liste.appendChild(fragment);
 
+    if (fokus) {
+      var ziel = document.querySelector('[data-fokus="' + CSS.escape(fokus) + '"]');
+      if (ziel) ziel.focus({ preventScroll: true });
+    }
+
     var ort = stadt ? ' in ' + stadt.name : '';
-    el.treffer.textContent = sichtbar.length === inStadt.length
+    var geprueftInStadt = inStadt.filter(function (eintrag) { return pruefDatum(eintrag); }).length;
+    el.treffer.textContent = (sichtbar.length === inStadt.length
       ? anzahlText(sichtbar.length) + ort
-      : sichtbar.length + ' von ' + anzahlText(inStadt.length) + ort;
+      : sichtbar.length + ' von ' + anzahlText(inStadt.length) + ort) +
+      ' · ' + geprueftInStadt + ' geprüft';
     el.leer.hidden = sichtbar.length > 0;
 
     hashAusZustand();
+  }
+
+  // ---------- Sync-Dialog ----------
+
+  function zeigeTokenFehler(text) {
+    el.tokenFehler.textContent = text || '';
+    el.tokenFehler.hidden = !text;
+  }
+
+  function richteDialogEin() {
+    var z = PRUEF ? PRUEF.zustand() : null;
+    if (!z || !z.konfiguriert) {
+      el.syncKnopf.hidden = true;
+      return;
+    }
+    document.getElementById('sync-datei').textContent = z.datei;
+    var repoLink = document.getElementById('sync-repo-link');
+    repoLink.textContent = z.repo;
+    repoLink.href = 'https://github.com/' + z.repo;
+    document.getElementById('sync-repo-name').textContent = z.repo.split('/')[1];
+
+    el.syncKnopf.addEventListener('click', function () {
+      zeigeTokenFehler('');
+      el.tokenEingabe.value = '';
+      el.dialog.showModal();
+    });
+
+    el.tokenSpeichern.addEventListener('click', function () {
+      zeigeTokenFehler('');
+      el.tokenSpeichern.disabled = true;
+      PRUEF.setzeToken(el.tokenEingabe.value)
+        .then(function () {
+          el.tokenEingabe.value = '';
+          if (PRUEF.zustand().modus !== 'fehler') el.dialog.close();
+        })
+        .catch(function (fehler) { zeigeTokenFehler(fehler.message); })
+        .finally(function () { el.tokenSpeichern.disabled = false; });
+    });
+
+    el.tokenEntfernen.addEventListener('click', function () {
+      PRUEF.entferneToken();
+    });
+
+    el.jetztSync.addEventListener('click', function () {
+      PRUEF.synchronisiere();
+    });
   }
 
   // ---------- Start ----------
@@ -342,6 +516,7 @@
 
   el.zuruecksetzen.addEventListener('click', function () {
     zustand.branche = ALLE;
+    zustand.status = ALLE;
     zustand.suche = '';
     el.suche.value = '';
     aktualisiere();
@@ -352,6 +527,8 @@
     aktualisiere();
   });
 
+  if (PRUEF) PRUEF.beobachte(aktualisiere);
+  richteDialogEin();
   zustandAusHash();
   aktualisiere();
 })();
