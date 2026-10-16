@@ -1,0 +1,489 @@
+/* ---------- Farben & Grundwerte ---------- */
+:root {
+  --hintergrund: #f6f7f9;
+  --flaeche: #ffffff;
+  --flaeche-2: #eef1f4;
+  --text: #17202a;
+  --text-leise: #56616d;
+  --linie: #dde2e8;
+  --akzent: #0f766e;
+  --akzent-text: #ffffff;
+  --akzent-zart: #e3f3f1;
+  --fokus: #2563eb;
+  --schatten: 0 1px 2px rgb(16 24 40 / 6%), 0 1px 3px rgb(16 24 40 / 8%);
+  --radius: 14px;
+  --abstand: 16px;
+
+  /* Kategorie-Farben (Punkt + Badge) */
+  --kat-software: #4f46e5;
+  --kat-energie: #16a34a;
+  --kat-finanzen: #0891b2;
+  --kat-gesundheit: #db2777;
+  --kat-immobilien: #b45309;
+  --kat-hardware: #7c3aed;
+  --kat-plattform: #ea580c;
+  --kat-konsum: #65a30d;
+  --kat-arbeit: #0d9488;
+
+  color-scheme: light dark;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --hintergrund: #0f1419;
+    --flaeche: #171e26;
+    --flaeche-2: #1f2832;
+    --text: #e6eaef;
+    --text-leise: #9aa6b2;
+    --linie: #2b3642;
+    --akzent: #2dd4bf;
+    --akzent-text: #04211e;
+    --akzent-zart: #12322f;
+    --fokus: #60a5fa;
+    --schatten: 0 1px 2px rgb(0 0 0 / 40%);
+
+    --kat-software: #818cf8;
+    --kat-energie: #4ade80;
+    --kat-finanzen: #22d3ee;
+    --kat-gesundheit: #f472b6;
+    --kat-immobilien: #fbbf24;
+    --kat-hardware: #a78bfa;
+    --kat-plattform: #fb923c;
+    --kat-konsum: #a3e635;
+    --kat-arbeit: #5eead4;
+  }
+}
+
+[data-kategorie="software"] { --kat: var(--kat-software); }
+[data-kategorie="energie"] { --kat: var(--kat-energie); }
+[data-kategorie="finanzen"] { --kat: var(--kat-finanzen); }
+[data-kategorie="gesundheit"] { --kat: var(--kat-gesundheit); }
+[data-kategorie="immobilien"] { --kat: var(--kat-immobilien); }
+[data-kategorie="hardware"] { --kat: var(--kat-hardware); }
+[data-kategorie="plattform"] { --kat: var(--kat-plattform); }
+[data-kategorie="konsum"] { --kat: var(--kat-konsum); }
+[data-kategorie="arbeit"] { --kat: var(--kat-arbeit); }
+
+/* ---------- Basis ---------- */
+*, *::before, *::after { box-sizing: border-box; }
+
+html { -webkit-text-size-adjust: 100%; }
+
+body {
+  margin: 0;
+  background: var(--hintergrund);
+  color: var(--text);
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  font-size: 16px;
+  line-height: 1.5;
+}
+
+a { color: inherit; }
+
+:focus-visible {
+  outline: 3px solid var(--fokus);
+  outline-offset: 2px;
+}
+
+.huelle {
+  width: 100%;
+  max-width: 1120px;
+  margin: 0 auto;
+  padding: 0 var(--abstand);
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+.skip-link {
+  position: absolute;
+  left: var(--abstand);
+  top: -100px;
+  z-index: 10;
+  padding: 8px 12px;
+  border-radius: 8px;
+  background: var(--akzent);
+  color: var(--akzent-text);
+}
+.skip-link:focus { top: 8px; }
+
+/* ---------- Kopf ---------- */
+.kopf {
+  padding: 32px 0 20px;
+}
+
+.kopf__stand {
+  margin: 0 0 6px;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: var(--akzent);
+}
+
+.kopf__titel {
+  margin: 0;
+  font-size: clamp(1.75rem, 1.2rem + 2.4vw, 2.6rem);
+  line-height: 1.15;
+  letter-spacing: -0.02em;
+}
+
+.kopf__intro {
+  margin: 10px 0 0;
+  max-width: 62ch;
+  color: var(--text-leise);
+}
+
+/* ---------- Städte-Auswahl ---------- */
+.staedte {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.stadt-knopf {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+  padding: 8px 16px;
+  border: 1px solid var(--linie);
+  border-radius: 999px;
+  background: var(--flaeche);
+  color: var(--text);
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.stadt-knopf:hover { border-color: var(--akzent); }
+
+.stadt-knopf[aria-pressed="true"] {
+  background: var(--akzent);
+  border-color: var(--akzent);
+  color: var(--akzent-text);
+}
+
+.stadt-knopf__anzahl {
+  min-width: 1.6em;
+  padding: 0 6px;
+  border-radius: 999px;
+  background: var(--flaeche-2);
+  color: var(--text-leise);
+  font-size: 0.8125rem;
+  text-align: center;
+}
+
+.stadt-knopf[aria-pressed="true"] .stadt-knopf__anzahl {
+  background: rgb(255 255 255 / 22%);
+  color: inherit;
+}
+
+/* ---------- Stadt-Info ---------- */
+.stadt-info {
+  margin-bottom: 16px;
+  padding: 16px;
+  border-radius: var(--radius);
+  background: var(--akzent-zart);
+}
+
+.stadt-info:empty { display: none; }
+
+.stadt-info__titel {
+  margin: 0 0 4px;
+  font-size: 1.125rem;
+}
+
+.stadt-info p { margin: 0; }
+
+.stadt-info__hinweis {
+  margin-top: 8px !important;
+  color: var(--text-leise);
+  font-size: 0.875rem;
+}
+
+/* ---------- Filter ---------- */
+.filter {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.suche {
+  position: relative;
+  flex: 1 1 260px;
+}
+
+.suche__icon {
+  position: absolute;
+  left: 14px;
+  top: 50%;
+  width: 18px;
+  height: 18px;
+  transform: translateY(-50%);
+  fill: var(--text-leise);
+  pointer-events: none;
+}
+
+.suche input,
+.sortierung select {
+  width: 100%;
+  min-height: 44px;
+  border: 1px solid var(--linie);
+  border-radius: 10px;
+  background: var(--flaeche);
+  color: var(--text);
+  font: inherit;
+}
+
+.suche input { padding: 10px 12px 10px 42px; }
+
+.sortierung {
+  display: flex;
+  flex: 0 1 auto;
+  align-items: center;
+  gap: 8px;
+  color: var(--text-leise);
+  font-size: 0.875rem;
+}
+
+.sortierung select { padding: 8px 10px; width: auto; }
+
+/* Branchen-Chips: auf dem Handy horizontal scrollbar, ab Tablet umbrechend */
+.kategorien {
+  display: flex;
+  gap: 8px;
+  margin: 0 calc(var(--abstand) * -1) 12px;
+  padding: 2px var(--abstand) 6px;
+  overflow-x: auto;
+  scrollbar-width: thin;
+}
+
+@media (min-width: 720px) {
+  .kategorien {
+    flex-wrap: wrap;
+    margin: 0 0 12px;
+    padding: 0;
+    overflow: visible;
+  }
+}
+
+.chip {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 6px;
+  min-height: 36px;
+  padding: 6px 12px;
+  border: 1px solid var(--linie);
+  border-radius: 999px;
+  background: var(--flaeche);
+  color: var(--text);
+  font: inherit;
+  font-size: 0.875rem;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.chip:hover { border-color: var(--text-leise); }
+
+.chip[aria-pressed="true"] {
+  border-color: var(--text);
+  background: var(--text);
+  color: var(--hintergrund);
+}
+
+.chip__punkt {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--kat, var(--text-leise));
+}
+
+.chip__anzahl { opacity: 0.7; }
+
+.treffer {
+  margin: 0 0 12px;
+  color: var(--text-leise);
+  font-size: 0.875rem;
+}
+
+/* ---------- Karten ---------- */
+.karten {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 320px), 1fr));
+  gap: 14px;
+  margin: 0 0 40px;
+  padding: 0;
+  list-style: none;
+}
+
+.karte {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 18px;
+  border: 1px solid var(--linie);
+  border-top: 4px solid var(--kat, var(--linie));
+  border-radius: var(--radius);
+  background: var(--flaeche);
+  box-shadow: var(--schatten);
+}
+
+.karte__kopf {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.karte__name {
+  margin: 0;
+  font-size: 1.1875rem;
+  line-height: 1.25;
+  overflow-wrap: anywhere;
+}
+
+.karte__stadt {
+  flex: 0 0 auto;
+  padding: 2px 8px;
+  border-radius: 6px;
+  background: var(--flaeche-2);
+  color: var(--text-leise);
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.karte__meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 10px;
+  align-items: center;
+  margin: 0;
+  color: var(--text-leise);
+  font-size: 0.8125rem;
+}
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--kat) 14%, transparent);
+  color: var(--text);
+  font-weight: 600;
+}
+
+.karte__text { margin: 0; }
+
+.karte__highlights {
+  margin: 0;
+  padding-left: 10px;
+  border-left: 3px solid var(--flaeche-2);
+  color: var(--text-leise);
+  font-size: 0.9375rem;
+}
+
+.karte__hinweis {
+  margin: 0;
+  font-size: 0.875rem;
+  color: var(--text-leise);
+  font-style: italic;
+}
+
+.karte__aktionen {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: auto;
+  padding-top: 6px;
+}
+
+.karte__karriere-hinweis {
+  margin: 0;
+  color: var(--text-leise);
+  font-size: 0.8125rem;
+}
+
+/* ---------- Knöpfe ---------- */
+.knopf {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-height: 44px;
+  padding: 10px 16px;
+  border: 1px solid var(--linie);
+  border-radius: 10px;
+  background: var(--flaeche);
+  color: var(--text);
+  font: inherit;
+  font-weight: 600;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.knopf:hover { border-color: var(--text-leise); }
+
+.knopf--primaer {
+  flex: 1 1 auto;
+  border-color: var(--akzent);
+  background: var(--akzent);
+  color: var(--akzent-text);
+}
+
+.knopf--primaer:hover { filter: brightness(1.08); border-color: var(--akzent); }
+
+.knopf__pfeil { font-size: 0.9em; }
+
+/* ---------- Leerer Zustand ---------- */
+.leer {
+  margin-bottom: 40px;
+  padding: 24px;
+  border: 1px dashed var(--linie);
+  border-radius: var(--radius);
+  text-align: center;
+  color: var(--text-leise);
+}
+
+.leer p { margin: 0 0 12px; }
+
+/* ---------- Fuß ---------- */
+.fuss {
+  padding: 28px 0 40px;
+  border-top: 1px solid var(--linie);
+  background: var(--flaeche);
+  color: var(--text-leise);
+  font-size: 0.875rem;
+}
+
+.fuss__titel {
+  margin: 0 0 8px;
+  color: var(--text);
+  font-size: 1rem;
+}
+
+.quellen {
+  margin: 0 0 16px;
+  padding-left: 18px;
+}
+
+.quellen li { margin-bottom: 4px; }
+
+.fuss__hinweis {
+  margin: 0;
+  max-width: 75ch;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .stadt-knopf, .chip, .knopf { transition: background-color 0.15s, border-color 0.15s, color 0.15s; }
+}

@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Startup-Jobs Rhein-Ruhr</title>
+  <meta name="description" content="Top-Startups aus Essen, Düsseldorf und Köln – mit Kurzprofil und direktem Link zur Karriereseite.">
+  <meta name="color-scheme" content="light dark">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%230f766e'/%3E%3Cpath d='M9 21l5-10 4 7 2-3 3 6z' fill='white'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="assets/styles.css">
+</head>
+<body>
+  <a class="skip-link" href="#liste">Zur Liste springen</a>
+
+  <header class="kopf">
+    <div class="huelle">
+      <p class="kopf__stand">Recherche-Stand: Oktober 2026</p>
+      <h1 class="kopf__titel">Startup-Jobs an Rhein &amp; Ruhr</h1>
+      <p class="kopf__intro" id="kopf-intro">Ausgewählte Startups mit Kurzprofil und direktem Link zur Karriereseite.</p>
+    </div>
+  </header>
+
+  <main class="huelle">
+    <nav class="staedte" id="staedte" aria-label="Stadt auswählen"></nav>
+
+    <section class="stadt-info" id="stadt-info" aria-live="polite"></section>
+
+    <div class="filter">
+      <label class="suche">
+        <span class="sr-only">Startups durchsuchen</span>
+        <svg class="suche__icon" viewBox="0 0 20 20" aria-hidden="true"><path d="M8.5 3a5.5 5.5 0 014.38 8.82l3.65 3.65-1.06 1.06-3.65-3.65A5.5 5.5 0 118.5 3zm0 1.5a4 4 0 100 8 4 4 0 000-8z"/></svg>
+        <input type="search" id="suche" placeholder="Name, Branche oder Stichwort" autocomplete="off">
+      </label>
+      <label class="sortierung">
+        <span>Sortierung</span>
+        <select id="sortierung">
+          <option value="relevanz">Empfohlen</option>
+          <option value="name">Name A–Z</option>
+          <option value="jung">Jüngste zuerst</option>
+          <option value="alt">Älteste zuerst</option>
+        </select>
+      </label>
+    </div>
+
+    <div class="kategorien" id="kategorien" role="group" aria-label="Nach Branche filtern"></div>
+
+    <h2 class="sr-only">Startup-Liste</h2>
+    <p class="treffer" id="treffer" aria-live="polite"></p>
+    <ul class="karten" id="liste"></ul>
+    <div class="leer" id="leer" hidden>
+      <p>Keine Startups passen zu deiner Auswahl.</p>
+      <button type="button" class="knopf" id="zuruecksetzen">Filter zurücksetzen</button>
+    </div>
+
+    <noscript>
+      <p class="leer">Bitte JavaScript aktivieren – die Liste wird aus den Dateien im Ordner <code>data/</code> aufgebaut.</p>
+    </noscript>
+  </main>
+
+  <footer class="fuss">
+    <div class="huelle">
+      <h2 class="fuss__titel">Quellen</h2>
+      <ul class="quellen" id="quellen"></ul>
+      <p class="fuss__hinweis">
+        Auswahl und Kurzprofile beruhen auf öffentlich zugänglichen Quellen (Startup-Rankings, Fachpresse,
+        Unternehmenswebsites) mit Stand Oktober 2026. Angaben ohne Gewähr – offene Stellen, Finanzierungen und
+        Karriereseiten ändern sich laufend.
+      </p>
+    </div>
+  </footer>
+
+  <!-- Daten: Kategorien zuerst, danach eine Datei pro Stadt (Reihenfolge = Reihenfolge der Tabs). -->
+  <script src="data/kategorien.js"></script>
+  <script src="data/staedte/essen.js"></script>
+  <script src="data/staedte/duesseldorf.js"></script>
+  <script src="data/staedte/koeln.js"></script>
+  <script src="assets/app.js"></script>
+</body>
+</html>
